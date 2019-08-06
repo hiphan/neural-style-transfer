@@ -137,11 +137,11 @@ def get_grads(generation_img):
 init_generation_image = add_noise_to_image(content_image)
 
 # Training
-max_iter = 2
+max_iter = 500
 init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
                                             maxiter=max_iter)
-print(type(init_generation_image))
-np.save(arr=init_generation_image, file='mat')
-plt.imshow(init_generation_image)
+
+result = restore_image(init_generation_image)
+plt.imshow(result)
 plt.save('result.png')
 plt.close()

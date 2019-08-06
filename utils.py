@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from imageio import imread
 from PIL import Image
 from keras.applications.vgg19 import preprocess_input
+from keras import backend as K
 
 
 def load_image(path_to_image, reshaped_size=(400, 300)):
@@ -26,10 +27,27 @@ def add_noise_to_image(image, noise_ratio=0.9):
 
     # Generate a random noise_image
     image_shape = image.shape
-    noise = np.random.uniform(-20, 20, image_shape).astype('float32')
+    noise = np.random.uniform(-20, 20, image_shape).astype('float64')
 
     # Set the input_image to be a weighted average of the content_image and a noise_image
     output = noise * noise_ratio + image * (1 - noise_ratio)
 
     return output
 
+
+def restore_image(image):
+    """
+    Reshape and reverse VGG19's preprocessing
+    """
+    # Reshape
+    restored_image = image.reshape(300, 400, 3)
+
+    # Add mean pixel values
+    color_means = [103.939, 116.779, 123.68]
+    for c in range(3):
+        restored_image[..., c] += color_means[c]
+
+    # BGR to RGB
+    restored_image = restored_image[..., ::-1]
+
+    return restored_image
