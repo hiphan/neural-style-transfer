@@ -9,94 +9,23 @@ from keras.optimizers import Adam
 from keras.models import Model
 from keras import backend as K
 import sys
-from loss_func import *
 from utils import *
+import os
 
 
-import numpy as np
-import tensorflow as tf
-from keras.models import Model
-from keras.preprocessing import image
-from keras.applications.vgg19 import preprocess_input
-from keras import backend as K
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 
-# compute content cost of image C and S at the chosen layer
-def content_cost(content_image, generation_image, model, layer='block3_conv1'):
-    # Get intermediate layer output
-    intermediate_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
-    content_activation = intermediate_model.predict(content_image)
-    generation_activation = intermediate_model.predict(generation_image)
-
-    # Get shape
-    assert len(generation_activation.shape) == 4
-    m, h, w, c = generation_activation.shape
-
-    # Unroll
-    reshaped_C = K.reshape(content_activation, [h * w, c])
-    reshaped_G = K.reshape(generation_activation, [h * w, c])
-
-    # Compute cost
-    content_J = (1 / (4 * h * w * c)) * K.sum(K.square(reshaped_C - reshaped_G))
-
-    return content_J
-
-
-def style_cost(style_activation, generation_activation):
-    m, h, w, c = K.int_shape(generation_activation)
-
-    def gram_mat(tensor):
-        return K.dot(tensor, K.transpose(tensor))
-
-    reshaped_S = K.transpose(K.reshape(style_activation, [h * w, c]))
-    reshaped_G = K.transpose(K.reshape(generation_activation, [h * w, c]))
-
-    gram_S = gram_mat(reshaped_S)
-    gram_G = gram_mat(reshaped_G)
-
-    style_J = K.square(1 / (2 * h * w * c)) * K.sum(K.square(gram_S - gram_G))
-    return style_J
-
-
-def weighted_style_cost(model, style_image, generation_image, weight_dict):
-    weighted_style_J = 0
-
-    for layer, weight in weight_dict.items():
-        intermediate_model = Model(inputs=model.input, outputs=model.get_layer(layer).output)
-
-        style_activation = intermediate_model.predict(style_image)
-        generation_activation = intermediate_model.predict(generation_image)
-
-        style_activation_tensor = K.variable(style_activation)
-        generation_activation_tensor = K.variable(generation_activation)
-
-        layer_J = style_cost(style_activation_tensor, generation_activation_tensor)
-
-        weighted_style_J = weighted_style_J + layer_J * weight
-
-    return weighted_style_J
-
-
-# Weighted total cost
-def total_cost(model, weight_dict, content_image, style_image, generation_image, alpha=10, beta=40):
-    content_J = content_cost(content_image, generation_image, model)
-    style_J = weighted_style_cost(model, style_image, generation_image, weight_dict)
-    total_J = alpha * content_J + beta * style_J
-    return total_J
-
-# Load VGG-19 model
-vgg19_model = VGG19(weights='imagenet', include_top=False, input_shape=(300, 400, 3))
-# print(vgg19_model.summary())
-
-# Load content and style image
+# Load content and style image as Keras tensors
 content_image = load_image("nature.jpg")
 style_image = load_image("the_scream.jpg")
 
-# Add noise to content image. Also optimizing objective
-init_generation_image = add_noise_to_image(content_image)
+# Convert to np arrays to tensors
+content_tensor = K.variable(content_image)
+style_tensor = K.variable(style_image)
 
 # Create placeholder for initial generation image
-generation_image = K.placeholder(shape=(1, 300, 400, 3), name='generation_output')
+generation_image = K.placeholder(shape=(1, 300, 400, 3), name='generation_image')
 
 # Define layers' weights
 layer_weights = {
@@ -105,27 +34,112 @@ layer_weights = {
     'block4_conv1': 0.3,
 }
 
+# Load models
+inputs = K.concatenate([content_tensor, style_tensor, generation_image], axis=0)
+vgg19_model = VGG19(input_tensor=inputs, weights='imagenet', include_top=False)
 
-# Compute loss
-def loss(generation_img):
-    return total_cost(vgg19_model, layer_weights, content_image, style_image, generation_img)
-
-
-def loss_fn(generation_img):
-    fn = K.function([])
-
-# Optimizer
-opt = tf.train.AdamOptimizer()
-
-# Train
-epochs = 2
-for _ in range(epochs):
-    loss, grads = fn(init_generation_image)
-    print(loss)
-    print(grads)
-    init_generation_image, _, _ = fmin_l_bfgs_b(func=total_cost, x0=init_generation_image, fprime=grads, maxfun=10)
-    plt.imshow(init_generation_image)
-    plt.show()
+# Get activation for each image
+content_activation = dict((layer.name, layer.output[0, :, :, :]) for layer in vgg19_model.layers)
+style_activation = dict((layer.name, layer.output[1, :, :, :]) for layer in vgg19_model.layers)
+generation_activation = dict((layer.name, layer.output[2, :, :, :]) for layer in vgg19_model.layers)
 
 
-# Save generation image
+# Compute content loss at one chosen layer
+def content_loss(content_activation_list, generation_activation_list, layer='block3_conv1'):
+    # Get activations at the chosen layer
+    content_layer_activation = content_activation_list[layer]
+    generation_layer_activation = generation_activation_list[layer]
+
+    # Get shape
+    assert len(generation_layer_activation.shape) == 3
+    h, w, c = K.int_shape(generation_layer_activation)
+
+    # Unroll
+    reshaped_C = K.reshape(content_layer_activation, [h * w, c])
+    reshaped_G = K.reshape(generation_layer_activation, [h * w, c])
+
+    # Compute loss
+    cl = (1 / (4 * h * w * c)) * K.sum(K.square(reshaped_C - reshaped_G))
+
+    return cl
+
+
+# Compute style loss at one layer
+def style_loss(style_act, generation_act):
+    # Get shape
+    assert(len(generation_act.shape)) == 3
+    h, w, c = K.int_shape(generation_act)
+
+    # Compute the gram matrix of a tensor
+    def gram_mat(tensor):
+        return K.dot(tensor, K.transpose(tensor))
+
+    # Unroll
+    reshaped_S = K.transpose(K.reshape(style_act, [h * w, c]))
+    reshaped_G = K.transpose(K.reshape(generation_act, [h * w, c]))
+
+    # Get gram matrix
+    gram_S = gram_mat(reshaped_S)
+    gram_G = gram_mat(reshaped_G)
+
+    # Compute loss
+    sl = K.square(1 / (2 * h * w * c)) * K.sum(K.square(gram_S - gram_G))
+
+    return sl
+
+
+# Compute weighted style loss at different layers
+def weighted_style_loss(style_activation_list, generation_activation_list, weights):
+    wsl = 0
+
+    for layer, weight in weights.items():
+        curr_style_activation = style_activation_list[layer]
+        curr_generation_activation = generation_activation_list[layer]
+
+        layer_loss = style_loss(curr_style_activation, curr_generation_activation)
+
+        wsl = wsl + layer_loss * weight
+
+    return wsl
+
+
+# Compute weighted total loss
+alpha = 10
+beta = 40
+cl = content_loss(content_activation, generation_activation)
+sl = weighted_style_loss(style_activation, generation_activation, layer_weights)
+total_loss = alpha * cl + beta * sl
+
+# Compute gradients
+grads = K.gradients(loss=total_loss, variables=generation_image)
+
+# Create function
+fn = K.function([generation_image], ([total_loss] + grads))
+
+
+def get_loss(generation_img):
+    """
+    Function to compute loss wrt the current generated image
+    """
+    generation_img = K.reshape(generation_img, [1, 300, 400, 3])
+    return fn([generation_img])[0].astype('float64')
+
+
+def get_grads(generation_img):
+    """
+    Function to compute gradient wrt the current generated image
+    """
+    generation_img = K.reshape(generation_img, [1, 300, 400, 3])
+    return fn([generation_img])[1].flatten().astype('float64')
+
+
+# Add noise to content image. Also optimizing objective
+init_generation_image = add_noise_to_image(content_image)
+
+# Training
+max_iter = 2
+init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
+                                            maxiter=max_iter)
+plt.imshow(init_generation_image)
+plt.save('result.png')
+plt.close()
