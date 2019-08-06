@@ -136,7 +136,7 @@ init_generation_image = add_noise_to_image(content_image)
 iterations = 500
 for iter in iterations:
     init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads)
-    if iter % 5 == 4:
+    if iter % 10 == 9:
         result = restore_image(init_generation_image)
         img_path = 'nst_results/iteration_' + str(iter + 1) + '.png'
         plt.imshow(result)
