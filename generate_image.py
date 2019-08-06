@@ -1,12 +1,7 @@
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
-import tensorflow as tf
 from keras.applications.vgg19 import VGG19
-from keras.layers import Input
-from keras.initializers import Constant
-from keras.optimizers import Adam
-from keras.models import Model
 from keras import backend as K
 import sys
 from utils import *
@@ -14,6 +9,7 @@ import os
 
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=10, inter_op_parallelism_threads=10)))
 
 
 # Load content and style image as Keras tensors
@@ -137,11 +133,12 @@ def get_grads(generation_img):
 init_generation_image = add_noise_to_image(content_image)
 
 # Training
-max_iter = 500
-init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
-                                            maxiter=max_iter)
-
-result = restore_image(init_generation_image)
-plt.imshow(result)
-plt.save('result.png')
-plt.close()
+iterations = 500
+for iter in iterations:
+    init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads)
+    if iter % 5 == 4:
+        result = restore_image(init_generation_image)
+        img_path = 'nst_results/iteration_' + str(iter + 1) + '.png'
+        plt.imshow(result)
+        plt.savefig(img_path)
+        plt.close()
