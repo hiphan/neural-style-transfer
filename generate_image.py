@@ -127,7 +127,7 @@ def get_loss(generation_img):
 
 def get_grads(generation_img):
     """
-    Function to compute gradient wrt the current generated image
+    Function to compute gradients wrt the current generated image
     """
     generation_img = K.reshape(generation_img, [1, 300, 400, 3])
     return fn([generation_img])[1].flatten().astype('float64')
@@ -140,6 +140,8 @@ init_generation_image = add_noise_to_image(content_image)
 max_iter = 2
 init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
                                             maxiter=max_iter)
+print(type(init_generation_image))
+np.save(arr=init_generation_image, file='mat')
 plt.imshow(init_generation_image)
 plt.save('result.png')
 plt.close()
