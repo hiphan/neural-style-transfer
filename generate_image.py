@@ -1,16 +1,17 @@
+import os
+os.environ['OPENBLAS_NUM_THREADS'] = '5'
+os.environ['MKL_NUM_THREADS'] = '5'
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
 from keras.applications.vgg19 import VGG19
 from keras import backend as K
-K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=5, inter_op_parallelism_threads=5)))
 import sys
 from utils import *
-import os
-os.environ['OPENBLAS_NUM_THREADS'] = '5'
-os.environ['MKL_NUM_THREADS'] = '5'
+
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=10, inter_op_parallelism_threads=10)))
 
 
 # Load content and style image as Keras tensors
