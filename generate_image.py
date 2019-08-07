@@ -9,6 +9,8 @@ import os
 
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+os.environ['OPENBLAS_NUM_THREADS'] = '5'
+os.environ['MKL_NUM_THREADS'] = '5'
 K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=5, inter_op_parallelism_threads=5)))
 
 
