@@ -136,11 +136,12 @@ def get_grads(generation_img):
 init_generation_image = add_noise_to_image(content_image)
 
 # Training
-iterations = 500
+iterations = 1
 for iter in range(iterations):
     init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads)
     if iter % 10 == 9:
         result = restore_image(init_generation_image)
+        np.save(arr=result, file="res")
         img_path = 'nst_results/iteration_' + str(iter + 1) + '.png'
         plt.imshow(result)
         plt.savefig(img_path)
