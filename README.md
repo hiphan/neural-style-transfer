@@ -10,13 +10,10 @@ The original and generated images are shown below.
 Content image:  
 
 <img src="nature.jpg" width="400" height="300" align="middle">    
-&nbsp
 
-  
 Style Image:  
 
 <img src="the_scream.jpg" width="300" height="400" align="middle">  
-&nbsp
   
 Generated Images (iteration 10, 20, and 50):  
 
