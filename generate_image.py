@@ -2,7 +2,6 @@ import os
 os.environ['OPENBLAS_NUM_THREADS'] = '5'
 os.environ['MKL_NUM_THREADS'] = '5'
 import numpy as np
-np.__config__.show()
 from scipy.optimize import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
 from keras.applications.vgg19 import VGG19
@@ -136,14 +135,11 @@ def get_grads(generation_img):
 init_generation_image = add_noise_to_image(content_image)
 
 # Training
-iterations = 10
+iterations = 500
 for iter in range(iterations):
     init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
-                                                maxfun=10)
-    np.save(arr=restore_image(init_generation_image), file="res")
+                                                maxfun=25)
     if iter % 10 == 9:
-        result = restore_image(init_generation_image)
+        result = restore_image(init_generation_image.copy())
         img_path = 'nst_results/iteration_' + str(iter + 1) + '.png'
-        plt.imshow(result)
-        plt.savefig(img_path)
-        plt.close()
+        plt.imsave(fname=img_path, arr=result)
