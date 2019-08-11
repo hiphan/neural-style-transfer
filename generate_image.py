@@ -135,7 +135,7 @@ def get_grads(generation_img):
 init_generation_image = add_noise_to_image(content_image)
 
 # Training
-iterations = 20
+iterations = 50
 for iter in range(iterations):
     init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
                                                 maxfun=25)
