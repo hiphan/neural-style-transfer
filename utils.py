@@ -17,11 +17,11 @@ def load_image(path_to_image, reshaped_size=(400, 300)):
     return preprocessed_image
 
 
-def add_noise_to_image(image, noise_ratio=0.9):
+def add_noise_to_image(image, noise_ratio=0.6):
     """
     Add noise to image based on the noise ratio
     :param image: original image as numpy array
-    :param noise_ratio: between 0 and 1.0. Default 0.9
+    :param noise_ratio: between 0 and 1.0. Default 0.6
     :return:
     """
 
@@ -49,5 +49,11 @@ def restore_image(image):
 
     # BGR to RGB
     restored_image = restored_image[..., ::-1]
+
+    # Clip value between 0 and 255
+    restored_image = np.clip(restored_image, a_min=0, a_max=255)
+
+    # Convert pixel values to integer
+    restored_image = restored_image.astype('uint8')
 
     return restored_image
