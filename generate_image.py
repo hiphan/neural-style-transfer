@@ -1,22 +1,18 @@
-import os
-os.environ['OPENBLAS_NUM_THREADS'] = '5'
-os.environ['MKL_NUM_THREADS'] = '5'
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 import matplotlib.pyplot as plt
 from keras.applications.vgg19 import VGG19
 from keras import backend as K
 import sys
+import os
 from utils import *
 
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-K.set_session(K.tf.Session(config=K.tf.ConfigProto(intra_op_parallelism_threads=5, inter_op_parallelism_threads=5)))
-
-
 # Load content and style image as Keras tensors
-content_image = load_image("nature.jpg")
-style_image = load_image("the_scream.jpg")
+content_path = "nature.jpg"
+style_path = "the_scream.jpg"
+content_image = load_image(content_path)
+style_image = load_image(style_path)
 
 # Convert to np arrays to tensors
 content_tensor = K.variable(content_image)
