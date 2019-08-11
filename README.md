@@ -6,23 +6,25 @@ My implementation uses intermediate layers of [Keras' pre-trained VGG-19 model](
 While the content cost is computed using the activation of layer 3, the weighted style cost is computed using the 
 activations of layers 2, 3, 4 with weights (0.3, 0.4, 0.3). Optimization is done using scipy's L-BFGS implementation.   
 The original and generated images are shown below.  
+
 <figure> 
-    <img src="nature.jpg" width="400" height="300" align="middle"> 
-    <figcaption>Content Image</figcaption>
-</figure> 
-Style Image: 
+    <img src="nature.jpg" width="400" height="300" margin-left="auto" margin-right="auto"> 
+    <figcaption align="middle">Content Image</figcaption>
+</figure>   
+
 <figure>  
-    <img src="the_scream.jpg" width="300" height="400" align="middle">
+    <img src="the_scream.jpg" width="300" height="400" margin-left="auto" margin-right="auto">
     <figcaption>Style Image</figcaption>
 </figure>   
+
 Generated Images:  
 <figure>
-    <img src="nst_results/iteration_10.png" width="33%" align="middle">
+    <img src="nst_results/iteration_10.png" width="33%">
     <figcaption>Iteration 10</figcaption>
 </figure> 
-    <img src="nst_results/iteration_20.png" width="33%" align="middle">
+    <img src="nst_results/iteration_20.png" width="33%">
     <figcaption>Iteration 20</figcaption>
 </figure> 
-    <img src="nst_results/iteration_50.png" width="33%" align="middle">
+    <img src="nst_results/iteration_50.png" width="33%">
     <figcaption>Iteration 50</figcaption>
 </figure> 
