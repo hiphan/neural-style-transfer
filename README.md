@@ -7,24 +7,19 @@ While the content cost is computed using the activation of layer 3, the weighted
 activations of layers 2, 3, 4 with weights (0.3, 0.4, 0.3). Optimization is done using scipy's L-BFGS implementation.   
 The original and generated images are shown below.  
 
-<figure> 
-    <img src="nature.jpg" width="400" height="300" margin-left="auto" margin-right="auto"> 
-    <figcaption align="middle">Content Image</figcaption>
-</figure>   
+Content image:  
 
-<figure>  
-    <img src="the_scream.jpg" width="300" height="400" margin-left="auto" margin-right="auto">
-    <figcaption>Style Image</figcaption>
-</figure>   
+<img src="nature.jpg" width="400" height="300" align="middle">    
+&nbsp
 
-Generated Images:  
-<figure>
-    <img src="nst_results/iteration_10.png" width="33%">
-    <figcaption>Iteration 10</figcaption>
-</figure> 
-    <img src="nst_results/iteration_20.png" width="33%">
-    <figcaption>Iteration 20</figcaption>
-</figure> 
-    <img src="nst_results/iteration_50.png" width="33%">
-    <figcaption>Iteration 50</figcaption>
-</figure> 
+  
+Style Image:  
+
+<img src="the_scream.jpg" width="300" height="400" align="middle">  
+&nbsp
+  
+Generated Images (iteration 10, 20, and 50):  
+
+<img src="nst_results/iteration_10.png" width="33%">
+<img src="nst_results/iteration_20.png" width="33%">
+<img src="nst_results/iteration_50.png" width="33%">
