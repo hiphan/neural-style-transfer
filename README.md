@@ -5,18 +5,10 @@ Matthias Bethge 's "A Neural Algorithm of Artistic Style"](https://arxiv.org/pdf
 My implementation uses intermediate layers of [Keras' pre-trained VGG-19 model](https://keras.io/applications/#vgg19).
 While the content cost is computed using the activation of layer 3, the weighted style cost is computed using the 
 activations of layers 2, 3, 4 with weights (0.3, 0.4, 0.3). Optimization is done using scipy's L-BFGS implementation.   
-The original and generated images are shown below.  
-
-Content image:  
-
-<img src="nature.jpg" width="400" height="300" align="middle">    
-
-Style Image:  
-
-<img src="the_scream.jpg" width="300" height="400" align="middle">  
-  
-Generated Images (iteration 10, 20, and 50):  
-
-<img src="nst_results/iteration_10.png" width="33%">
-<img src="nst_results/iteration_20.png" width="33%">
-<img src="nst_results/iteration_50.png" width="33%">
+## Examples: ## 
+- Nature + The Scream:  
+![](nst_gif/nature.gif) 
+- Building + Starry Night:  
+![](nst_gif/building.gif)
+- Campus + Starry Night:  
+![](nst_gif/campus.gif)
