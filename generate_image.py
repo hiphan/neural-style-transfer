@@ -9,8 +9,8 @@ from utils import *
 
 
 # Load content and style image as Keras tensors
-content_path = "nature.jpg"
-style_path = "the_scream.jpg"
+content_path = sys.argv[1]
+style_path = sys.argv[2]
 content_image = load_image(content_path)
 style_image = load_image(style_path)
 
@@ -110,7 +110,7 @@ grads = K.gradients(loss=total_loss, variables=generation_image)
 # Create function
 fn = K.function([generation_image], ([total_loss] + grads))
 
-
+gi
 def get_loss(generation_img):
     """
     Function to compute loss wrt the current generated image
@@ -130,12 +130,21 @@ def get_grads(generation_img):
 # Add noise to content image. Also optimizing objective
 init_generation_image = add_noise_to_image(content_image)
 
-# Training
-iterations = 50
-for iter in range(iterations):
-    init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
-                                                maxfun=25)
-    if iter % 10 == 9:
-        result = restore_image(init_generation_image.copy())
-        img_path = 'nst_results/iteration_' + str(iter + 1) + '.png'
+# Current num of iterations
+iter_count = 1
+
+
+# Callback to save intermediate results
+def callback_image(x):
+    global iter_count
+    if iter_count % 1 == 0:
+        result = restore_image(x.copy())
+        img_path = 'nst_results/' + content_path.split('.')[0] + '/iteration_' + str(iter_count) + '.png'
         plt.imsave(fname=img_path, arr=result)
+    iter_count += 1
+
+
+# Training
+max_iterations = 25
+init_generation_image, _, _ = fmin_l_bfgs_b(func=get_loss, x0=init_generation_image.flatten(), fprime=get_grads,
+                                            maxiter=max_iterations, callback=callback_image)
